@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Q-Search</title>
+<script>window.QSEARCH_API = '';</script>
+<style>
+  :root {
+    --bg: #000000;
+    --surface: #111111;
+    --surface-hover: #1a1a1a;
+    --border: rgba(255,255,255,0.08);
+    --border-hover: rgba(255,255,255,0.18);
+    --text: #ffffff;
+    --text-dim: #aaaaaa;
+    --text-muted: #555555;
+    --accent: #ffffff;
+    --accent-glow: rgba(255,255,255,0.10);
+    --accent-green: #cccccc;
+    --accent-green-glow: rgba(255,255,255,0.06);
+    --radius: 14px;
+    --radius-sm: 10px;
+    --radius-full: 999px;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container { max-width: 740px; margin: 0 auto; padding: 48px 24px; }
+
+  .top-bar { display: flex; justify-content: flex-end; align-items: center; margin-bottom: 40px; }
+  .lang-btn {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text-dim); padding: 8px 16px; border-radius: var(--radius-full);
+    cursor: pointer; font-size: 0.8rem; font-family: var(--font);
+    transition: all 0.25s; letter-spacing: 0.3px;
+  }
+  .lang-btn:hover { border-color: var(--border-hover); color: var(--text); background: var(--surface-hover); }
+
+  .brand {
+    text-align: center; margin-bottom: 8px;
+  }
+  .brand h1 {
+    font-size: 2.8rem; font-weight: 800; letter-spacing: -0.5px;
+    color: #fff;
+  }
+  .brand h1 .q-letter { color: #e03030; }
+  .brand h1 .search-icon-color { stroke: #30c080; }
+  .brand p { color: var(--text-dim); font-size: 0.92rem; margin-top: 6px; }
+
+  .search-box {
+    display: flex; gap: 8px; margin: 28px 0 16px;
+  }
+  .search-box input {
+    flex: 1; padding: 14px 20px; border: 1.5px solid var(--border);
+    border-radius: var(--radius-full); font-size: 1rem;
+    background: var(--surface); color: var(--text);
+    outline: none; transition: all 0.3s; font-family: var(--font);
+  }
+  .search-box input:focus {
+    border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow);
+    background: var(--surface-hover);
+  }
+  .search-box input::placeholder { color: var(--text-muted); }
+  .search-box button {
+    display: flex; align-items: center; gap: 8px;
+    padding: 14px 28px; border: none; border-radius: var(--radius-full);
+      background: #fff; color: #000; border: none;
+    color: #0a0a1a; font-size: 0.95rem; font-weight: 600;
+    cursor: pointer; transition: all 0.25s; font-family: var(--font);
+    white-space: nowrap; letter-spacing: 0.3px;
+  }
+  .search-box button:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+  .search-box button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  .info-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px 20px; margin: 16px 0 20px;
+    font-size: 0.82rem; color: var(--text-dim); line-height: 1.8;
+  }
+  .info-box strong { color: var(--text); }
+  .info-box .tag {
+    display: inline-block; padding: 0 10px; border-radius: var(--radius-sm);
+    font-size: 0.78rem; font-weight: 600;
+  }
+  .info-box .tag-video { background: rgba(255,255,255,0.08); color: #aaa; }
+  .info-box .tag-playlist { background: rgba(255,255,255,0.08); color: #aaa; }
+
+  .status { text-align: center; color: var(--text-dim); margin: 24px 0; min-height: 24px; font-size: 0.9rem; }
+  .error { text-align: center; color: #f06060; margin: 12px 0; font-size: 0.9rem; }
+
+  .mode-badge { text-align: center; margin-bottom: 24px; }
+  .mode-badge span {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 20px; border-radius: var(--radius-full);
+    font-size: 0.8rem; font-weight: 600; letter-spacing: 0.3px;
+  }
+  .mode-course { background: #1a1a1a; color: #ccc; border: 1px solid #333; }
+  .mode-general { background: #1a1a1a; color: #ccc; border: 1px solid #333; }
+
+  .results-header { color: var(--text-dim); margin-bottom: 20px; font-size: 0.85rem; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px 22px;
+    margin-bottom: 12px; transition: all 0.25s;
+  }
+  .card:hover { border-color: var(--border-hover); background: var(--surface-hover); }
+  .card-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .card-body { display: flex; gap: 14px; }
+  .card-body-info { flex: 1; min-width: 0; }
+  .thumb {
+    width: 140px; height: 79px; border-radius: 8px; object-fit: cover;
+    flex-shrink: 0; background: rgba(255,255,255,0.05);
+  }
+  .thumb-wrap {
+    flex-shrink: 0; position: relative;
+  }
+  .thumb-dur {
+    position: absolute; bottom: 4px; right: 4px;
+    background: rgba(0,0,0,0.85); color: #fff;
+    font-size: 0.7rem; padding: 1px 6px; border-radius: 4px;
+  }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 12px; border-radius: var(--radius-full);
+    font-size: 0.78rem; font-weight: 700; letter-spacing: 0.2px;
+  }
+  .badge-high { background: #fff; color: #000; }
+  .badge-mid { background: #333; color: #fff; }
+  .badge-low { background: #1a1a1a; color: #666; border: 1px solid #333; }
+
+  .rank-circle {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px; border-radius: 50%;
+    background: rgba(255,255,255,0.06); color: var(--text-dim);
+    font-size: 0.78rem; font-weight: 700; flex-shrink: 0;
+    margin-left: 10px;
+  }
+  .card-title {
+    font-size: 1rem; font-weight: 600; line-height: 1.4;
+    display: flex; align-items: center; margin-bottom: 6px;
+  }
+  .card-title a { color: var(--text); text-decoration: none; flex: 1; }
+  .card-title a:hover { color: var(--accent); }
+
+  .channel {
+    display: flex; align-items: center; gap: 5px;
+    color: var(--text-dim); font-size: 0.82rem; margin-bottom: 8px;
+  }
+
+  .desc {
+    color: var(--text-muted); font-size: 0.82rem; line-height: 1.5;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden; margin-bottom: 10px;
+  }
+
+  .stats { display: flex; flex-wrap: wrap; gap: 6px; }
+  .stats span {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: rgba(255,255,255,0.04); padding: 3px 10px;
+    border-radius: var(--radius-full); font-size: 0.75rem; color: var(--text-muted);
+  }
+
+  .rqs-track { margin-top: 12px; }
+  .rqs-bar {
+    height: 3px; background: rgba(255,255,255,0.06);
+    border-radius: 2px; overflow: hidden;
+  }
+  .rqs-fill {
+    height: 100%; border-radius: 2px;
+    background: #fff;
+    transition: width 0.6s ease;
+  }
+
+  .playlist-icon-wrap { flex-shrink: 0; opacity: 0.7; }
+
+  .sub-videos { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+  .sub-video {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.8rem; padding: 4px 0; color: var(--text-dim);
+  }
+  .sub-video a { color: var(--text-dim); text-decoration: none; }
+  .sub-video a:hover { color: var(--accent-green); }
+
+  .empty-state { text-align: center; padding: 60px 20px; }
+  .empty-state svg { margin-bottom: 12px; opacity: 0.3; }
+  .empty-state p { color: var(--text-muted); font-size: 0.95rem; }
+
+  .footer { text-align: center; color: var(--text-muted); margin-top: 48px; font-size: 0.75rem; letter-spacing: 0.5px; }
+
+  .hidden { display: none; }
+  .result { display: none; }
+  .result.visible { display: block; animation: fadeUp 0.35s ease; }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="top-bar">
+    <button class="lang-btn" id="langBtn" onclick="toggleLang()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      <span id="langLabel">English</span>
+    </button>
+  </div>
+
+  <div class="brand">
+    <h1><span class="q-letter">Q</span>–<span id="titleText">Search</span></h1>
+    <p id="subtitleText">ابحث عن أي موضوع وشوف أفضل النتائج حسب جودة المحتوى الحقيقية</p>
+  </div>
+
+  <form class="search-box" id="searchForm">
+    <input type="text" id="queryInput" placeholder="مثلاً: كورس سي شارب بالعربي">
+    <button type="submit" id="searchBtn">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <span id="searchBtnText">بحث</span>
+    </button>
+  </form>
+
+  <div class="info-box" id="infoBox">
+    <div id="infoContent">
+      <strong>كيف يعمل البحث</strong><br>
+      اكتب <span class="tag tag-playlist">كورس</span> أو <span class="tag tag-playlist">دورة</span> أو <span class="tag tag-playlist">course</span> ← يبحث في <strong>قوائم التشغيل</strong><br>
+      أي كلمة أخرى ← يبحث في <strong>المقاطع الفردية</strong><br>
+      الترتيب حسب <strong>RQS</strong> (جودة المحتوى من التعليقات واللايكات) وليس المشاهدات
+    </div>
+    <div id="infoContentEn" class="hidden">
+      <strong>How Search Works</strong><br>
+      Start with <span class="tag tag-playlist">كورس</span>, <span class="tag tag-playlist">دورة</span>, or <span class="tag tag-playlist">course</span> → searches <strong>playlists</strong><br>
+      Any other word → searches <strong>individual videos</strong><br>
+      Ranking by <strong>RQS</strong> (content quality from comments &amp; likes), not views
+    </div>
+  </div>
+
+  <div class="status" id="status"></div>
+  <div class="error" id="error"></div>
+  <div id="modeDisplay" class="mode-badge"></div>
+  <div class="result" id="results"></div>
+  <div class="footer" id="footerText">Q-Search v1.0 — يعرض أفضل ٥ نتائج حسب جودة المحتوى</div>
+</div>
+
+<script>
+  let lang = localStorage.getItem('qsearch-lang') || 'ar';
+
+  function t(ar, en) { return lang === 'ar' ? ar : en; }
+
+  function applyLang() {
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    document.getElementById('langLabel').textContent = t('English', 'العربية');
+    document.getElementById('titleText').textContent = t('Search', 'Search');
+    document.getElementById('subtitleText').textContent = t(
+      'ابحث عن أي موضوع وشوف أفضل النتائج حسب جودة المحتوى الحقيقية',
+      'Search any topic and see the best results ranked by real content quality'
+    );
+    document.getElementById('searchBtnText').textContent = t('بحث', 'Search');
+    document.getElementById('queryInput').placeholder = t(
+      'مثلاً: كورس سي شارب بالعربي',
+      'e.g. Python course for beginners'
+    );
+    document.getElementById('footerText').textContent = t(
+      'Q-Search v1.0 — يعرض أفضل ٥ نتائج حسب جودة المحتوى',
+      'Q-Search v1.0 — Top 5 results ranked by content quality'
+    );
+    document.getElementById('infoContent').classList.toggle('hidden', lang !== 'ar');
+    document.getElementById('infoContentEn').classList.toggle('hidden', lang !== 'en');
+    document.getElementById('langBtn').style.flexDirection = lang === 'ar' ? 'row' : 'row-reverse';
+    localStorage.setItem('qsearch-lang', lang);
+  }
+
+  function toggleLang() {
+    lang = lang === 'ar' ? 'en' : 'ar';
+    applyLang();
+    results.classList.remove('visible');
+    results.innerHTML = '';
+    modeDisplay.innerHTML = '';
+  }
+
+  applyLang();
+
+  const form = document.getElementById('searchForm');
+  const input = document.getElementById('queryInput');
+  const btn = document.getElementById('searchBtn');
+  const status = document.getElementById('status');
+  const error = document.getElementById('error');
+  const modeDisplay = document.getElementById('modeDisplay');
+  const results = document.getElementById('results');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const query = input.value.trim();
+    if (!query) return;
+
+    btn.disabled = true;
+    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> ${t('جاري البحث...', 'Searching...')}`;
+    status.textContent = t('يجلب النتائج ويحلل التعليقات...', 'Fetching results and analyzing comments...');
+    error.textContent = '';
+    modeDisplay.innerHTML = '';
+    results.classList.remove('visible');
+    results.innerHTML = '';
+
+    const apiBase = window.QSEARCH_API || '';
+    try {
+      const res = await fetch(`${apiBase}/search?query=${encodeURIComponent(query)}`);
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail?.detail || (lang === 'ar' ? 'خطأ في الخادم' : 'Server error'));
+      }
+      const data = await res.json();
+      displayResults(data);
+    } catch (err) {
+      error.textContent = '❌ ' + err.message;
+      status.textContent = '';
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> ${t('بحث', 'Search')}`;
+    }
+  });
+
+  function displayResults(data) {
+    status.textContent = '';
+    if (data.is_course) {
+      modeDisplay.innerHTML = `<span class="mode-course">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+        ${t('قوائم تشغيل', 'Playlists')}
+      </span>`;
+      renderPlaylists(data.playlists);
+    } else {
+      modeDisplay.innerHTML = `<span class="mode-general">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#30c080" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        ${t('مقاطع فيديو', 'Videos')}
+      </span>`;
+      renderVideos(data.videos);
+    }
+  }
+
+  function badge(rqs) {
+    const pct = (rqs * 100).toFixed(1);
+    const cls = pct >= 80 ? 'badge-high' : (pct >= 60 ? 'badge-mid' : 'badge-low');
+    return `<span class="badge ${cls}">
+      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      ${pct}%</span>`;
+  }
+
+  function renderVideos(videos) {
+    if (!videos || videos.length === 0) {
+      results.innerHTML = `<div class="empty-state">
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><line x1="8" x2="14" y1="11" y2="11"/></svg>
+        <p>${t('لا توجد نتائج كافية. جرب كلمات مختلفة.', 'Not enough results. Try different keywords.')}</p></div>`;
+      results.classList.add('visible');
+      return;
+    }
+    let html = `<div class="results-header">${t('تم العثور على', 'Found')} ${videos.length} ${t('نتيجة', 'result' + (videos.length > 1 ? 's' : ''))}</div>`;
+    videos.forEach((item, idx) => {
+      const v = item.video;
+      const rqs = item.rqs;
+      const views = v.view_count.toLocaleString();
+      const likes = v.like_count.toLocaleString();
+      const url = 'https://www.youtube.com/watch?v=' + v.video_id;
+      const desc = v.description ? v.description.substring(0, 200) + (v.description.length > 200 ? '…' : '') : '';
+      const dur = fmt(v.duration_seconds);
+      const thumb = v.thumbnail_url || '';
+      html += `<div class="card">
+        <div class="card-top">${badge(rqs)}</div>
+        <div class="card-body">
+          ${thumb ? `<div class="thumb-wrap"><img class="thumb" src="${thumb}" alt="" loading="lazy"><span class="thumb-dur">${dur}</span></div>` : ''}
+          <div class="card-body-info">
+            <div class="card-title"><span class="rank-circle">${idx + 1}</span><a href="${url}" target="_blank">${esc(v.title)}</a></div>
+            <div class="channel">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              ${esc(v.channel_title)}
+            </div>
+            ${desc ? `<div class="desc">${esc(desc)}</div>` : ''}
+            <div class="stats">
+              <span><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg> ${views}</span>
+              <span><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg> ${likes}</span>
+              <span><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> ${v.comment_count.toLocaleString()}</span>
+            </div>
+            <div class="rqs-track"><div class="rqs-bar"><div class="rqs-fill" style="width:${(rqs * 100).toFixed(1)}%"></div></div></div>
+          </div>
+        </div>
+      </div>`;
+    });
+    results.innerHTML = html;
+    results.classList.add('visible');
+  }
+
+  function renderPlaylists(playlists) {
+    if (!playlists || playlists.length === 0) {
+      results.innerHTML = `<div class="empty-state">
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><line x1="8" x2="14" y1="8" y2="8"/><line x1="8" x2="12" y1="12" y2="12"/></svg>
+        <p>${t('لا توجد قوائم تشغيل مناسبة. جرب كلمات مختلفة.', 'No suitable playlists. Try different keywords.')}</p></div>`;
+      results.classList.add('visible');
+      return;
+    }
+    let html = `<div class="results-header">${t('تم العثور على', 'Found')} ${playlists.length} ${t('قائمة تشغيل', 'playlist' + (playlists.length > 1 ? 's' : ''))}</div>`;
+    playlists.forEach((pl, idx) => {
+      const p = pl.playlist;
+      const rqs = pl.rqs;
+      const url = 'https://www.youtube.com/playlist?list=' + p.playlist_id;
+      const pthumb = p.thumbnail_url || '';
+      html += `<div class="card">
+        <div class="card-top">${badge(rqs)} <span style="color:var(--text-muted);font-size:0.75rem;">${p.item_count} ${t('فيديو', 'videos')}</span></div>
+        <div class="card-body">
+          ${pthumb ? `<div class="thumb-wrap"><img class="thumb" src="${pthumb}" alt="" loading="lazy"></div>` : ''}
+          <div class="card-body-info">
+            <div class="card-title">
+              <span class="rank-circle">${idx + 1}</span>
+              <a href="${url}" target="_blank">${esc(p.title)}</a>
+            </div>
+            <div class="channel">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              ${esc(p.channel_title)}
+            </div>
+            ${p.description ? `<div class="desc">${esc(p.description.substring(0, 200))}</div>` : ''}
+            ${pl.videos && pl.videos.length > 0 ? `<div class="sub-videos">${pl.videos.map(function(v, vi) {
+              var vu = 'https://www.youtube.com/watch?v=' + v.video.video_id;
+              return `<div class="sub-video">
+                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                <a href="${vu}" target="_blank">${esc(v.video.title)}</a>
+              </div>`;
+            }).join('')}</div>` : ''}
+            <div class="rqs-track"><div class="rqs-bar"><div class="rqs-fill" style="width:${(rqs * 100).toFixed(1)}%"></div></div></div>
+          </div>
+        </div>
+      </div>`;
+    });
+    results.innerHTML = html;
+    results.classList.add('visible');
+  }
+
+  function fmt(sec) {
+    if (!sec) return '0:00';
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    if (h > 0) return h + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+    return m + ':' + String(s).padStart(2,'0');
+  }
+
+  function esc(text) {
+    const d = document.createElement('div');
+    d.textContent = text;
+    return d.innerHTML;
+  }
+</script>
+</body>
+</html>
