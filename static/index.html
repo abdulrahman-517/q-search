@@ -321,14 +321,21 @@
   function toggleLang() {
     lang = lang === 'ar' ? 'en' : 'ar';
     applyLang();
-    results.classList.remove('visible');
-    results.innerHTML = '';
-    modeDisplay.innerHTML = '';
+    status.textContent = '';
+    error.textContent = '';
+    if (lastData) {
+      displayResults(lastData);
+    } else {
+      results.classList.remove('visible');
+      results.innerHTML = '';
+      modeDisplay.innerHTML = '';
+    }
   }
 
   applyLang();
 
   let searchType = 'auto';
+  let lastData = null;
 
   const toggleBtns = document.querySelectorAll('.toggle-btn');
   toggleBtns.forEach(btn => {
@@ -358,6 +365,7 @@
         throw new Error(err.detail?.detail || (lang === 'ar' ? 'خطأ في الخادم' : 'Server error'));
       }
       const data = await res.json();
+      lastData = data;
       displayResults(data);
     } catch (err) {
       error.textContent = '❌ ' + err.message;
