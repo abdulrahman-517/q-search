@@ -233,7 +233,14 @@ async def debug_search(query: str = "test"):
         raw_results = await fetcher.search_with_details(
             query=query, max_videos=3, max_comments=5
         )
-        return {"step": "search_ok", "count": len(raw_results)}
+        analyses = []
+        for metadata, comments in raw_results:
+            try:
+                analysis = analyzer.analyze(metadata, comments, search_query=query)
+                analyses.append({"video_id": metadata.video_id, "rqs": analysis.rqs})
+            except Exception as e:
+                analyses.append({"video_id": metadata.video_id, "error": str(e), "type": type(e).__name__})
+        return {"step": "search_ok", "count": len(raw_results), "analyses": analyses}
     except Exception as e:
         return {"step": "search_failed", "error": str(e), "type": type(e).__name__}
 
