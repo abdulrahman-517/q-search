@@ -205,6 +205,28 @@
   .result.visible { display: block; animation: fadeUp 0.35s ease; }
 
   @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  @media (max-width: 600px) {
+    .container { padding: 24px 16px; }
+    .brand h1 { font-size: 2rem; }
+    .brand p { font-size: 0.82rem; }
+    .search-box button { padding: 14px 18px; }
+    .search-box button span { display: none; }
+    .card-body { flex-direction: column; }
+    .thumb { width: 100%; height: auto; aspect-ratio: 16/9; }
+    .stats span { font-size: 0.7rem; padding: 2px 8px; }
+    .card-title { font-size: 0.9rem; }
+    .card { padding: 14px 16px; }
+    .info-box { font-size: 0.75rem; padding: 12px 14px; }
+    .rank-circle { width: 24px; height: 24px; font-size: 0.7rem; }
+    .top-bar { margin-bottom: 24px; }
+    .results-header { font-size: 0.78rem; }
+  }
+
+  @media (min-width: 601px) and (max-width: 900px) {
+    .container { padding: 32px 20px; }
+    .brand h1 { font-size: 2.4rem; }
+  }
 </style>
 </head>
 <body>
@@ -234,13 +256,12 @@
       <strong>كيف يعمل البحث</strong><br>
       اكتب <span class="tag tag-playlist">كورس</span> أو <span class="tag tag-playlist">دورة</span> أو <span class="tag tag-playlist">course</span> ← يبحث في <strong>قوائم التشغيل</strong><br>
       أي كلمة أخرى ← يبحث في <strong>المقاطع الفردية</strong><br>
-      الترتيب حسب <strong>RQS</strong> (جودة المحتوى من التعليقات واللايكات) وليس المشاهدات
+
     </div>
     <div id="infoContentEn" class="hidden">
       <strong>How Search Works</strong><br>
       Start with <span class="tag tag-playlist">كورس</span>, <span class="tag tag-playlist">دورة</span>, or <span class="tag tag-playlist">course</span> → searches <strong>playlists</strong><br>
       Any other word → searches <strong>individual videos</strong><br>
-      Ranking by <strong>RQS</strong> (content quality from comments &amp; likes), not views
     </div>
   </div>
 
