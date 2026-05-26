@@ -108,6 +108,26 @@
   .mode-course { background: #1a1a1a; color: #ccc; border: 1px solid #333; }
   .mode-general { background: #1a1a1a; color: #ccc; border: 1px solid #333; }
 
+  .toggle-group {
+    display: flex; gap: 6px; margin: 20px 0 16px;
+    justify-content: center;
+  }
+  .toggle-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 10px 20px; border: 1.5px solid var(--border);
+    border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 500;
+    background: transparent; color: var(--text-dim);
+    cursor: pointer; transition: all 0.25s; font-family: var(--font);
+  }
+  .toggle-btn:hover { border-color: var(--border-hover); color: var(--text); background: var(--surface); }
+  .toggle-btn.active { background: #fff; color: #000; border-color: #fff; }
+  .toggle-btn.active svg { stroke: #000; }
+
+  @media (max-width: 600px) {
+    .toggle-btn { font-size: 0.78rem; padding: 8px 14px; }
+    .toggle-btn svg { width: 12px; height: 12px; }
+  }
+
   .results-header { color: var(--text-dim); margin-bottom: 20px; font-size: 0.85rem; }
 
   .card {
@@ -251,18 +271,19 @@
     </button>
   </form>
 
-  <div class="info-box" id="infoBox">
-    <div id="infoContent">
-      <strong>كيف يعمل البحث</strong><br>
-      اكتب <span class="tag tag-playlist">كورس</span> أو <span class="tag tag-playlist">دورة</span> أو <span class="tag tag-playlist">course</span> ← يبحث في <strong>قوائم التشغيل</strong><br>
-      أي كلمة أخرى ← يبحث في <strong>المقاطع الفردية</strong><br>
-
-    </div>
-    <div id="infoContentEn" class="hidden">
-      <strong>How Search Works</strong><br>
-      Start with <span class="tag tag-playlist">كورس</span>, <span class="tag tag-playlist">دورة</span>, or <span class="tag tag-playlist">course</span> → searches <strong>playlists</strong><br>
-      Any other word → searches <strong>individual videos</strong><br>
-    </div>
+  <div class="toggle-group" id="toggleGroup">
+    <button class="toggle-btn active" data-type="auto" id="toggleAuto">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      <span>تلقائي</span>
+    </button>
+    <button class="toggle-btn" data-type="video" id="toggleVideo">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <span>فيديو</span>
+    </button>
+    <button class="toggle-btn" data-type="playlist" id="togglePlaylist">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+      <span>قائمة تشغيل</span>
+    </button>
   </div>
 
   <div class="status" id="status"></div>
@@ -290,8 +311,9 @@
       'مثلاً: كورس سي شارب بالعربي',
       'e.g. Python course for beginners'
     );
-    document.getElementById('infoContent').classList.toggle('hidden', lang !== 'ar');
-    document.getElementById('infoContentEn').classList.toggle('hidden', lang !== 'en');
+    document.getElementById('toggleAuto').querySelector('span').textContent = t('تلقائي', 'Auto');
+    document.getElementById('toggleVideo').querySelector('span').textContent = t('فيديو', 'Video');
+    document.getElementById('togglePlaylist').querySelector('span').textContent = t('قائمة تشغيل', 'Playlist');
     document.getElementById('langBtn').style.flexDirection = lang === 'ar' ? 'row' : 'row-reverse';
     localStorage.setItem('qsearch-lang', lang);
   }
@@ -305,6 +327,17 @@
   }
 
   applyLang();
+
+  let searchType = 'auto';
+
+  const toggleBtns = document.querySelectorAll('.toggle-btn');
+  toggleBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      toggleBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      searchType = btn.dataset.type;
+    });
+  });
 
   const form = document.getElementById('searchForm');
   const input = document.getElementById('queryInput');
@@ -329,7 +362,7 @@
 
     const apiBase = window.QSEARCH_API || '';
     try {
-      const res = await fetch(`${apiBase}/search?query=${encodeURIComponent(query)}`);
+      const res = await fetch(`${apiBase}/search?query=${encodeURIComponent(query)}&search_type=${searchType}`);
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.detail?.detail || (lang === 'ar' ? 'خطأ في الخادم' : 'Server error'));

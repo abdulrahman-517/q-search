@@ -86,7 +86,11 @@ app.add_middleware(
 )
 
 
-def get_search_type(query: str) -> str:
+def get_search_type(query: str, search_type: str = "auto") -> str:
+    if search_type == "video":
+        return "video"
+    if search_type == "playlist":
+        return "playlist"
     stripped = query.strip().lower()
     if stripped.startswith(("كورس", "دورة", "course")):
         return "playlist"
@@ -107,6 +111,9 @@ async def search(
     min_rqs: float = Query(
         0.45, ge=0.0, le=1.0, description="Minimum RQS threshold (0.0 to 1.0)"
     ),
+    search_type: str = Query(
+        "auto", pattern="^(auto|video|playlist)$", description="Search mode: auto, video, or playlist"
+    ),
 ):
     if not settings.YOUTUBE_API_KEY:
         raise HTTPException(
@@ -117,7 +124,7 @@ async def search(
             },
         )
 
-    search_type = get_search_type(query)
+    search_type = get_search_type(query, search_type)
     cache_key = _build_cache_key(query)
 
     if cache:
