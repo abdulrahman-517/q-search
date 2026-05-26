@@ -8,6 +8,7 @@ from typing import Optional
 
 import redis.asyncio as redis
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 
 from config import settings
@@ -74,6 +75,14 @@ app = FastAPI(
     version="1.0.0",
     description="Re-ranks YouTube search results by Real Quality Score (RQS)",
     lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -225,24 +234,6 @@ async def search(
         cached=False,
         is_course=False,
     )
-
-
-@app.get("/debug-search")
-async def debug_search(query: str = "test"):
-    try:
-        raw_results = await fetcher.search_with_details(
-            query=query, max_videos=3, max_comments=5
-        )
-        analyses = []
-        for metadata, comments in raw_results:
-            try:
-                analysis = analyzer.analyze(metadata, comments, search_query=query)
-                analyses.append({"video_id": metadata.video_id, "rqs": analysis.rqs})
-            except Exception as e:
-                analyses.append({"video_id": metadata.video_id, "error": str(e), "type": type(e).__name__})
-        return {"step": "search_ok", "count": len(raw_results), "analyses": analyses}
-    except Exception as e:
-        return {"step": "search_failed", "error": str(e), "type": type(e).__name__}
 
 
 @app.get("/")
