@@ -290,6 +290,7 @@ class QualityAnalyzer:
         negative_penalty = comment_negative
 
         lv_ratio = self.scorer.like_view_ratio(metadata.like_count, metadata.view_count)
+        cv_density = self.scorer.comment_view_density(metadata.comment_count, metadata.view_count)
         duration_score = self.scorer.duration_score(metadata.duration_seconds)
 
         matcher = TitleKeywordMatcher(search_query)
