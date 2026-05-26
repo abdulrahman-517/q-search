@@ -248,7 +248,6 @@
   <div class="error" id="error"></div>
   <div id="modeDisplay" class="mode-badge"></div>
   <div class="result" id="results"></div>
-  <div class="footer" id="footerText">Q-Search v1.0 — يعرض أفضل ٥ نتائج حسب جودة المحتوى</div>
 </div>
 
 <script>
@@ -269,10 +268,6 @@
     document.getElementById('queryInput').placeholder = t(
       'مثلاً: كورس سي شارب بالعربي',
       'e.g. Python course for beginners'
-    );
-    document.getElementById('footerText').textContent = t(
-      'Q-Search v1.0 — يعرض أفضل ٥ نتائج حسب جودة المحتوى',
-      'Q-Search v1.0 — Top 5 results ranked by content quality'
     );
     document.getElementById('infoContent').classList.toggle('hidden', lang !== 'ar');
     document.getElementById('infoContentEn').classList.toggle('hidden', lang !== 'en');
