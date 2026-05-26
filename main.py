@@ -227,6 +227,17 @@ async def search(
     )
 
 
+@app.get("/debug-search")
+async def debug_search(query: str = "test"):
+    try:
+        raw_results = await fetcher.search_with_details(
+            query=query, max_videos=3, max_comments=5
+        )
+        return {"step": "search_ok", "count": len(raw_results)}
+    except Exception as e:
+        return {"step": "search_failed", "error": str(e), "type": type(e).__name__}
+
+
 @app.get("/")
 async def index():
     return FileResponse("static/index.html")
