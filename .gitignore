@@ -1,6 +1,53 @@
-__pycache__/
-*.pyc
+# Environment and credentials
 .env
-*.whl
-venv/
+.env.*
+!.env.example
+*.pem
+*.key
+credentials*
+secrets*
+session*/
+auth*/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.python-version
 .venv/
+venv/
+env/
+ENV/
+pip-wheel-metadata/
+*.egg-info/
+.eggs/
+build/
+dist/
+*.whl
+
+# Tests, coverage, and tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# Logs and runtime files
+*.log
+logs/
+*.pid
+
+# Editors and operating systems
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak

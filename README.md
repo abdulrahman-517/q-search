@@ -19,7 +19,7 @@
 
 **Q-Search** is an Arabic-first search interface for discovering YouTube videos and playlists by estimated content quality rather than view count alone.
 
-The backend retrieves candidate results through the YouTube Data API, analyzes several relevance and engagement signals, calculates a **Real Quality Score (RQS)**, then returns the five strongest matches. The interface supports Arabic and English and works across desktop and mobile layouts.
+The backend retrieves candidate results through the YouTube Data API, analyzes relevance and engagement signals, calculates a **Real Quality Score (RQS)**, then returns the five strongest qualifying matches. The interface supports Arabic and English across desktop and mobile layouts.
 
 > RQS is a project-specific heuristic, not an objective or official measure of video quality.
 
@@ -44,8 +44,6 @@ Conventional search ranking can overemphasize popularity. Q-Search explores a di
 
 ## Ranking Model
 
-The current score combines the following weighted signals:
-
 | Weight | Signal |
 |---:|---|
 | 30% | Like-to-view ratio |
@@ -55,7 +53,7 @@ The current score combines the following weighted signals:
 | 10% | Duration score |
 | 10% | Quality adjustments, including clickbait penalty and educational boost |
 
-The weights are configurable design decisions and may evolve as the project is tested against more queries.
+The weights are configurable design decisions and may evolve as the project is evaluated against more queries.
 
 ## Architecture
 
@@ -89,13 +87,14 @@ flowchart LR
 
 ```text
 q-search/
-├── main.py                 # FastAPI application and endpoints
-├── config.py               # Environment-based configuration
-├── data_fetcher.py         # YouTube API data retrieval
-├── quality_analyzer.py     # Ranking and scoring logic
-├── models.py               # Pydantic request/response models
+├── main.py
+├── config.py
+├── data_fetcher.py
+├── quality_analyzer.py
+├── models.py
 ├── static/
-│   └── index.html          # Responsive Arabic/English interface
+│   └── index.html
+├── assets/
 ├── requirements.txt
 ├── .env.example
 └── .gitignore
@@ -103,14 +102,14 @@ q-search/
 
 ## Local Setup
 
-### 1. Clone the repository
+### 1. Clone
 
 ```bash
 git clone https://github.com/abdulrahman-517/q-search.git
 cd q-search
 ```
 
-### 2. Create and activate a virtual environment
+### 2. Create a virtual environment
 
 **Windows PowerShell**
 
@@ -133,59 +132,31 @@ python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
-### 4. Configure environment variables
+### 4. Configure the environment
 
 ```bash
 cp .env.example .env
 ```
 
-Then set a valid YouTube Data API key in `.env`:
-
 ```env
 YOUTUBE_API_KEY=your_youtube_api_key_here
 ```
 
-### 5. Run the application
+### 5. Run
 
 ```bash
 python -m uvicorn main:app --reload
 ```
 
-Open:
-
-```text
-http://127.0.0.1:8000
-```
-
-Interactive API documentation:
-
-```text
-http://127.0.0.1:8000/docs
-```
+Application: `http://127.0.0.1:8000`
+API documentation: `http://127.0.0.1:8000/docs`
 
 ## API Examples
 
-### Search automatically
-
 ```http
 GET /search?query=fastapi
-```
-
-### Search videos only
-
-```http
 GET /search?query=fastapi&search_type=video
-```
-
-### Search playlists only
-
-```http
 GET /search?query=python%20course&search_type=playlist
-```
-
-### Health check
-
-```http
 GET /health
 ```
 
@@ -197,18 +168,18 @@ GET /health
 | `REDIS_HOST` | No | `localhost` | Redis hostname |
 | `REDIS_PORT` | No | `6379` | Redis port |
 | `REDIS_DB` | No | `0` | Redis database index |
-| `REDIS_TTL` | No | `300` | Cache lifetime (seconds) |
-| `CACHE_ENABLED` | No | `true` | Enables/disables Redis caching |
-| `MAX_VIDEOS` | No | `50` | Configuration value; the inspected search route currently uses a fixed candidate count of 15 |
-| `MAX_COMMENTS` | No | `50` | Maximum comments for analysis |
+| `REDIS_TTL` | No | `300` | Cache lifetime in seconds |
+| `CACHE_ENABLED` | No | `true` | Enables or disables Redis caching |
+| `MAX_VIDEOS` | No | `50` | Configured limit; the current search route uses a fixed candidate count of 15 |
+| `MAX_COMMENTS` | No | `50` | Maximum comments requested for analysis |
 | `REQUEST_TIMEOUT` | No | `10` | Upstream request timeout |
+| `RATE_LIMIT_CALLS` | No | `100` | Reserved config; active rate-limiting middleware not found in inspected main.py |
+| `RATE_LIMIT_PERIOD` | No | `60` | Reserved rate-limit period configuration |
 | `LOG_LEVEL` | No | `INFO` | Application logging level |
 
 ## Deployment
 
-The application serves both the FastAPI backend and the `static/index.html` frontend, so it can be deployed as a single web service.
-
-Example start command:
+The FastAPI application serves the API and `static/index.html` from one web service.
 
 ```bash
 uvicorn main:app --host 0.0.0.0 --port $PORT
@@ -220,7 +191,7 @@ Required production variable:
 YOUTUBE_API_KEY=your_production_key
 ```
 
-When Redis is not available, disable caching:
+When Redis is unavailable:
 
 ```env
 CACHE_ENABLED=false
@@ -229,27 +200,32 @@ CACHE_ENABLED=false
 ## Security Notes
 
 - Never commit `.env` or a real YouTube API key
-- Restrict the API key in Google Cloud to the APIs and environments that need it
-- Rotate a key immediately if it is accidentally committed or shared
-- Review CORS configuration before using the API from multiple production domains
-- Do not expose internal logs or upstream error details to end users in production
+- Restrict the Google Cloud key to the required API and environment
+- Rotate any exposed credential immediately
+- Replace wildcard CORS with explicit production origins before using credentialed cross-origin requests
+- Return sanitized production errors instead of raw upstream exception text
+- Avoid exposing internal logs to clients
 
 ## Current Limitations
 
-- Ranking quality depends on the availability and representativeness of YouTube metadata and comments
-- Sentiment analysis can be less accurate across dialects, mixed-language comments, sarcasm, and informal Arabic
-- The scoring weights are heuristic and require broader evaluation
-- YouTube API quotas limit the number of searches and detail requests available each day
-- The current repository does not include an automated test suite or CI workflow
+- Ranking quality depends on available YouTube metadata and comments
+- Sentiment analysis can be less accurate for dialects, mixed-language comments, sarcasm, and informal Arabic
+- The scoring model is heuristic and requires broader evaluation
+- YouTube API quotas limit searches and detail requests
+- The repository does not currently include automated tests or CI
+- The `/search` route currently uses a fixed candidate-video count instead of `MAX_VIDEOS`
+- Rate-limit configuration exists, but active enforcement was not found in the inspected application entry point
 
 ## Roadmap
 
-- [ ] Add automated tests for score calculation and search-mode detection
-- [ ] Add structured evaluation queries for ranking comparisons
-- [ ] Improve Arabic-language text analysis
-- [ ] Add safer production CORS configuration
-- [ ] Add result explanations showing why each result ranked highly
-- [ ] Add deployment health monitoring
+- [ ] Add unit tests for scoring and search-mode detection
+- [ ] Add a CI workflow for syntax, tests, and dependency installation
+- [ ] Wire `MAX_VIDEOS` into the search route
+- [ ] Implement and test API rate limiting
+- [ ] Improve Arabic-language analysis
+- [ ] Configure explicit production CORS origins
+- [ ] Sanitize upstream error responses
+- [ ] Add result explanations
 
 ## Author
 
@@ -260,4 +236,4 @@ Built by [Abdulrahman Al-Mushajari](https://github.com/abdulrahman-517).
 
 ## License
 
-MIT License — see [LICENSE](LICENSE) file for details.
+MIT License — see [LICENSE](LICENSE) for details.
