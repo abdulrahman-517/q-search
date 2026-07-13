@@ -162,7 +162,7 @@ GET /health
 
 ## Environment Variables
 
-| Variable | Required | Default | Purpose |
+| Variable | Required | Default | Current purpose |
 |---|---:|---|---|
 | `YOUTUBE_API_KEY` | Yes | Empty | YouTube Data API v3 credential |
 | `REDIS_HOST` | No | `localhost` | Redis hostname |
@@ -170,10 +170,10 @@ GET /health
 | `REDIS_DB` | No | `0` | Redis database index |
 | `REDIS_TTL` | No | `300` | Cache lifetime in seconds |
 | `CACHE_ENABLED` | No | `true` | Enables or disables Redis caching |
-| `MAX_VIDEOS` | No | `50` | Configured limit; the current search route uses a fixed candidate count of 15 |
+| `MAX_VIDEOS` | No | `50` | Configuration value; the inspected search route currently uses a fixed candidate count of 15 |
 | `MAX_COMMENTS` | No | `50` | Maximum comments requested for analysis |
 | `REQUEST_TIMEOUT` | No | `10` | Upstream request timeout |
-| `RATE_LIMIT_CALLS` | No | `100` | Reserved config; active rate-limiting middleware not found in inspected main.py |
+| `RATE_LIMIT_CALLS` | No | `100` | Reserved configuration; active rate-limiting middleware was not found in the inspected `main.py` |
 | `RATE_LIMIT_PERIOD` | No | `60` | Reserved rate-limit period configuration |
 | `LOG_LEVEL` | No | `INFO` | Application logging level |
 
@@ -199,22 +199,22 @@ CACHE_ENABLED=false
 
 ## Security Notes
 
-- Never commit `.env` or a real YouTube API key
-- Restrict the Google Cloud key to the required API and environment
-- Rotate any exposed credential immediately
-- Replace wildcard CORS with explicit production origins before using credentialed cross-origin requests
-- Return sanitized production errors instead of raw upstream exception text
-- Avoid exposing internal logs to clients
+- Never commit `.env` or a real YouTube API key.
+- Restrict the Google Cloud key to the required API and environment.
+- Rotate any exposed credential immediately.
+- Replace wildcard CORS with explicit production origins before using credentialed cross-origin requests.
+- Return sanitized production errors instead of raw upstream exception text.
+- Avoid exposing internal logs to clients.
 
 ## Current Limitations
 
-- Ranking quality depends on available YouTube metadata and comments
-- Sentiment analysis can be less accurate for dialects, mixed-language comments, sarcasm, and informal Arabic
-- The scoring model is heuristic and requires broader evaluation
-- YouTube API quotas limit searches and detail requests
-- The repository does not currently include automated tests or CI
-- The `/search` route currently uses a fixed candidate-video count instead of `MAX_VIDEOS`
-- Rate-limit configuration exists, but active enforcement was not found in the inspected application entry point
+- Ranking quality depends on available YouTube metadata and comments.
+- Sentiment analysis can be less accurate for dialects, mixed-language comments, sarcasm, and informal Arabic.
+- The scoring model is heuristic and requires broader evaluation.
+- YouTube API quotas limit searches and detail requests.
+- The repository does not currently include automated tests or CI.
+- The `/search` route currently uses a fixed candidate-video count instead of `MAX_VIDEOS`.
+- Rate-limit configuration exists, but active enforcement was not found in the inspected application entry point.
 
 ## Roadmap
 
