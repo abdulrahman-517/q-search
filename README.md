@@ -199,7 +199,7 @@ GET /health
 | `REDIS_DB` | No | `0` | Redis database index |
 | `REDIS_TTL` | No | `300` | Cache lifetime (seconds) |
 | `CACHE_ENABLED` | No | `true` | Enables/disables Redis caching |
-| `MAX_VIDEOS` | No | `50` | Candidate-video limit |
+| `MAX_VIDEOS` | No | `50` | Configuration value; the inspected search route currently uses a fixed candidate count of 15 |
 | `MAX_COMMENTS` | No | `50` | Maximum comments for analysis |
 | `REQUEST_TIMEOUT` | No | `10` | Upstream request timeout |
 | `LOG_LEVEL` | No | `INFO` | Application logging level |
@@ -253,9 +253,10 @@ CACHE_ENABLED=false
 
 ## Author
 
-Built by [Abdulrahman Al-Mushajari](https://github.com/abdulrahman-517), founder of [Bonya Digital Solutions](https://bonyatech.com).
+Built by [Abdulrahman Al-Mushajari](https://github.com/abdulrahman-517).
 
-For professional inquiries: [abdulrahmanalmushajari@gmail.com](mailto:abdulrahmanalmushajari@gmail.com)
+- [Portfolio](https://portofile001.netlify.app/)
+- [Email](mailto:abdulrahmanalmushajari@gmail.com)
 
 ## License
 
